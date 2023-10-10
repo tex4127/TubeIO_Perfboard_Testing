@@ -7,7 +7,7 @@
 ///
 /////////////////////////////////////////////
 
-#include "TubeIO.h"
+#include "libs/TubeIO.h"
 
 TubeIO tubeIO;
 
@@ -15,10 +15,10 @@ void setup()
 {
   //Initialize the tubeIO object | serial is initialized here based on argument for begin
   tubeIO.begin();
+  tubeIO._debug = true;
 }
 
 void loop() 
 {
   tubeIO.run();
-  
 }
