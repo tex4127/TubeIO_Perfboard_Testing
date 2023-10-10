@@ -110,7 +110,7 @@ class Generator
   private:
   int calculateCheckSum(char* buf, size_t len);
   ComType gen_ct;
-  HardwareSerial* gen_Serial;
+  Stream* gen_Serial;
   
 };
 

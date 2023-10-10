@@ -14,6 +14,8 @@ TubeIO tubeIO;
 void setup() 
 {
   //Initialize the tubeIO object | serial is initialized here based on argument for begin
+  Serial.begin(HWS_BAUD);
+  Serial.println("Starting Up");
   tubeIO.begin();
   tubeIO._debug = true;
 }
@@ -21,4 +23,6 @@ void setup()
 void loop() 
 {
   tubeIO.run();
+  //digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+  //delay(1000);
 }

@@ -76,6 +76,7 @@ typedef enum
   enableK8Contactor = 30,
   enableGenAuxContactor,
   enablePeripheralContactor,
+  resetGenFaults,
   testBuzzer
 } SerialCommand;
 

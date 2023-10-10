@@ -1,5 +1,10 @@
 #include "TubeIO.h"
 
+void test()
+{
+  Serial.println("Test");
+}
+
 //Sets all values for the structure to false
 void setDataStruct(GeneratorStatus* _data)
 {
@@ -39,8 +44,13 @@ void TubeIO::begin(ControlSerial_t ser)
   //Setup the LED PIN
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
+  gen = new Generator();
+  gen->begin();
   if(ser == ControlSerial_t::PhysicalUSB){ serial = &Serial; }
   else {serial = &Serial1;}
+  //Start both serial busses
+  Serial.begin(HWS_BAUD);
+  Serial1.begin(HWS_BAUD);
   //Set up all values
   //lets set the raw and real values for our Generator conversions | Defaults to a 160; 4 kW system
   conv_kV_SP.real = 160.0/4095.0;
@@ -55,8 +65,8 @@ void TubeIO::begin(ControlSerial_t ser)
   //Send a request to get scaling from the generator
   gen->sendDataToGenerator(SpellmanCommand::RequestScaling);
   delay(50); //wait for the gen to send the data
-  char* genData = gen->recieveDataFromGenerator();
-  if(genData[0] != '\0') parseGeneratorBuffer(genData);
+  //char* genData = gen->recieveDataFromGenerator();
+  //if(genData[0] != '\0') parseGeneratorBuffer(genData);
   TubeIO::resetValue(&coolantTemp);
   TubeIO::resetValue(&coolantFlow);
   TubeIO::resetValue(&TubemA);
@@ -73,7 +83,6 @@ void TubeIO::begin(ControlSerial_t ser)
   digitalWrite(RESERVOIRHEATERPIN, LOW);
   pinMode(BYPASSVALVEPIN, OUTPUT);
   digitalWrite(BYPASSVALVEPIN, LOW);
-
   //Blink the LED 3 times to signal the system is setup
   for(uint i = 0; i < 6; i++)
   {
@@ -100,13 +109,13 @@ void TubeIO::run()
     switch (cycleNumber)
     {
       case 9:
-      gen->sendDataToGenerator(SpellmanCommand::RequestStatus);
+      //gen->sendDataToGenerator(SpellmanCommand::RequestStatus);
       break;
       case 19:
-      gen->sendDataToGenerator(SpellmanCommand::RequestFaults);
+      //gen->sendDataToGenerator(SpellmanCommand::RequestFaults);
       break;
       default:
-      gen->sendDataToGenerator(SpellmanCommand::RequestAnalogReadBacks);
+      //gen->sendDataToGenerator(SpellmanCommand::RequestAnalogReadBacks);
       break;
     }
   }
@@ -114,9 +123,15 @@ void TubeIO::run()
   TubeIO::readIFM();
   TubeIO::readLineVoltage();
   if(!TubeIO::_debug){TubeIO::sendData();}
-  else{TubeIO::printData_f(_startTime);}
+  //else{TubeIO::printData_f(_startTime);}
+  do
+  {
+    HandleSerialData();
+  } while(millis() - _startTime < 50);
+  cycleNumber++;
+  if(cycleNumber == 20){cycleNumber = 0; digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));}
+  Serial.println(); //used for debugging
 }
-
 void TubeIO::readLineVoltage()
 {
   
@@ -372,6 +387,10 @@ void TubeIO::HandleSerialData()
       //********************************** BUZZER TEST
       case SerialCommand::testBuzzer:
       digitalWrite(BUZZERPIN, !digitalRead(BUZZERPIN));
+      break;
+      //********************************** RESET GEN FAULTS
+      case SerialCommand::resetGenFaults:
+      gen->sendDataToGenerator(SpellmanCommand::ResetFaluts);
       break;
       default:
       //Maybe do something to signal a bad command? add an LED?

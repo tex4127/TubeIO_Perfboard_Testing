@@ -13,8 +13,9 @@ ErrorCodes_t Generator::begin(ComType _ct)
   if(_ct == ComType::RS232)
   {
     //Set the serial port to the appropriate tx/rx lines | Start the serial coms
-    Generator::gen_Serial = &Serial2;
-    gen_Serial->begin(HWS_BAUD);
+    Generator::gen_Serial = &Serial;
+    Serial2.begin(HWS_BAUD);
+    //gen_Serial->begin(HWS_BAUD);
   }
   return ErrorCodes_t::NoError;
 }
