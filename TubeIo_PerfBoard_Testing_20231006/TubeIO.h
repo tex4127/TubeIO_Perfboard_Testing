@@ -1,8 +1,7 @@
 #ifndef __TUBEIO_HH__
 #define __TUBEIO_HH__
 
-#include "util.h"
-#include"GeneratorComs.h"
+#include "GeneratorComs.h"
 
 
 #ifndef IFMFLOWPIN
@@ -130,7 +129,7 @@ class TubeIO
   void EnableFilament();
   void EnableHV();
   ErrorCodes_t sendData();
-  ErrorCodes_t printData_f();
+  ErrorCodes_t printData_f(ulong _st = 0);
   TimerValue _timer_Buzzer;
   TimerValue _timer_VFD;
   ulong _startTime;

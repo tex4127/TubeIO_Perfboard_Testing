@@ -2,7 +2,7 @@
 #define __GENERATORCOMS_HH__
 
 #include"ErrorCodes.h"
-#include"util.h"
+#include"genutil.h"
 
 //all we care about monitoring are the tube kV, mA and filament current
 
@@ -103,10 +103,15 @@ class Generator
   char* recieveDataFromGenerator();
   GeneratorStatus _status;
   GeneratorFaults _faults;
+  ErrorCodes_t addArgToArray(char* buf, size_t& pos, char* arg, size_t len);
+  ErrorCodes_t addArgToArray(char* buf, size_t& pos, int arg);
+  ErrorCodes_t addArgToArray(char* buf, size_t& pos, float arg);
+  ErrorCodes_t addArgToArray(char* bur, size_t& pos, double arg);
   private:
   int calculateCheckSum(char* buf, size_t len);
   ComType gen_ct;
   HardwareSerial* gen_Serial;
+  
 };
 
 #endif

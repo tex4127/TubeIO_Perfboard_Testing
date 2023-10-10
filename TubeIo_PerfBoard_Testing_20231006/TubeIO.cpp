@@ -2,10 +2,10 @@
 
 void setDataStruct(GeneratorStatus* _data)
 {
-  for(uint i =0; i < 17; i++)
-  {
-    memcpy(_data, 0, )
-  }
+  //for(uint i =0; i < 17; i++)
+  //{
+  //  memcpy(_data, 0, )
+  //}
 }
 
 TubeIO::TubeIO()
@@ -36,8 +36,8 @@ void TubeIO::begin(ControlSerial_t ser)
   //Send a request to get scaling from the generator
   gen->sendDataToGenerator(SpellmanCommand::RequestScaling);
   delay(50); //wait for the gen to send the data
-  char genData[MAXBUFFERLEN] = gen->recieveDataFromGenerator();
-  if(genData[0] != NULL)parseGeneratorBuffer(genData);
+  char* genData = gen->recieveDataFromGenerator();
+  if(genData[0] != '\0') parseGeneratorBuffer(genData);
   TubeIO::resetValue(&coolantTemp);
   TubeIO::resetValue(&coolantFlow);
   TubeIO::resetValue(&TubemA);
@@ -75,33 +75,43 @@ void TubeIO::resetValue(Value* v)
 void TubeIO::run()
 {
   //send the command to request analogReadBacks, Status, or Faults
+  _startTime = millis();
   if(!genRequestSent)
   {
-    //send request for status
-    if(cycleNumber == 9)
-    {gen->sendDataToGenerator(SpellmanCommand::RequestStatus);break;}
-    //send request for faults
-    if(cycleNumber == 19){gen->sendDataToGenerator(SpellmanCommand::RequestFaults);break;}
-    //otherwise, send the read analogReadBacks command
-    gen->sendDataToGenerator(SpellmanCommand::RequestAnalogReadBacks);
+    switch (cycleNumber)
+    {
+      case 9:
+      gen->sendDataToGenerator(SpellmanCommand::RequestStatus);
+      break;
+      case 19:
+      gen->sendDataToGenerator(SpellmanCommand::RequestFaults);
+      break;
+      default:
+      gen->sendDataToGenerator(SpellmanCommand::RequestAnalogReadBacks);
+      break;
+    }
   }
   //read all the other peripherals
   TubeIO::readIFM();
   TubeIO::readLineVoltage();
   if(!TubeIO::_debug){TubeIO::sendData();}
-  else{TubeIO::printData_f();}
+  else{TubeIO::printData_f(_startTime);}
+}
+
+void TubeIO::readLineVoltage()
+{
+  
 }
 
 ErrorCodes_t TubeIO::sendData()
 {
-
+  return ErrorCodes_t::NoError;
 }
 
-ErrorCodes_t TubeIO::printData_f(ulong _st = 0)
+ErrorCodes_t TubeIO::printData_f(ulong _st)
 {
   serial->println("********** NEW DATA  **********");
   serial->println("********** TUBE DATA **********");
-  serial->println("Tube kV:             255.23")
   serial->println("Tube kV:            " + String(TubekV.real, 2));
   serial->println("Tube mA:            " + String(TubemA.real, 2));
   serial->println("Filament Current:   " + String(FilamentCur.real,2));
@@ -118,7 +128,8 @@ ErrorCodes_t TubeIO::printData_f(ulong _st = 0)
   serial->println("FilamentEnabled:    " + String(gen->_status.FilamentEnabled));
   serial->println("Pre Warn:           " + String(gen->_status.PreWarn));
   serial->println("PS Ready:           " + String(gen->_status.PSReady));
-  serial->println("Internal Interlock: " + String(gen->_status.Internal));
+  serial->println("Internal Interlock: " + String(gen->_status.InternalInterlock));
+  return ErrorCodes_t::NoError;
 }
 
 void TubeIO::readIFM()
@@ -207,10 +218,6 @@ void TubeIO::parseGeneratorBuffer(char* data)
   }
 }
 
-void TubeIO::run()
-{
-  
-}
 
 void TubeIO::HandleSerialData()
 {
@@ -243,7 +250,7 @@ void TubeIO::HandleSerialData()
       case SerialCommand::setGenmA_raw:
       tok = strtok(NULL, ",");
       _arg1 = atoi(tok);
-      gen->sendDataToGenerator(SpellmanCommand::ProgrammA, _arg1;)
+      gen->sendDataToGenerator(SpellmanCommand::ProgrammA, _arg1);
       break;
       //REAL
       case SerialCommand::setGenmA_real:
@@ -260,7 +267,7 @@ void TubeIO::HandleSerialData()
       //REAL
       case SerialCommand::setFilLim_real:
       tok = strtok(NULL, ",");
-      _arg1 = (int)(atof(tok) / conv_Fil_SP);
+      _arg1 = (int)(atof(tok) / conv_Fil_SP.real);
       gen->sendDataToGenerator(SpellmanCommand::ProgramFilamentLimit, _arg1);
       //********************************** Program Preheat Limit
       //RAW
@@ -280,7 +287,7 @@ void TubeIO::HandleSerialData()
       tok = strtok(NULL, ",");
       _arg1 = atoi(tok);
       if(_arg1 != 1) _arg1 = 0;
-      gen->sendDataToGenerator(SpellmanCommand::EnableFilament, _arg1);
+      gen->sendDataToGenerator(SpellmanCommand::FilamentControl, _arg1);
       break;
       //********************************** Enable HV
       case SerialCommand::enableHV:
@@ -288,7 +295,7 @@ void TubeIO::HandleSerialData()
       _arg1 = atoi(tok);
       if(_arg1 != 1) _arg1 = 0; //force the value to be 1 or 0
       if(_arg1 == 1) {digitalWrite(VFDPOWERPIN, HIGH);} //force the pin to go high for the VFD
-      gen->sendDataToGenerator(SpellmanCommand::EnableHV, _arg1);
+      gen->sendDataToGenerator(SpellmanCommand::ProgramHVOn, _arg1);
       break;
       //********************************** WATER PUMP
       case SerialCommand::enableWaterPump:
@@ -296,18 +303,18 @@ void TubeIO::HandleSerialData()
       break;
       //********************************** VFD INCREASE
       case SerialCommand::increaseVFD:
-      if(_timer_VFD == 0)
+      if(_timer_VFD._timerCV == 0)
       {
         //set timer for VFD to be 100 ms then every loop we will check the value for timers
-        _timer_VFD = 100; //this will count down, so it will increase for ~100 ms
+        _timer_VFD._timerCV = 100; //this will count down, so it will increase for ~100 ms
         digitalWrite(VFDFREQINCPIN, HIGH);
       }
       break;
       //********************************** VFD DECREASE
       case SerialCommand::decreaseVFD:
-      if(_timer_VFD == 0)
+      if(_timer_VFD._timerCV == 0)
       {
-        _timer_VFD = 100;
+        _timer_VFD._timerCV = 100;
         digitalWrite(VFDFREQDECPIN, HIGH);
       }
       break;
@@ -326,7 +333,7 @@ void TubeIO::HandleSerialData()
       break;
       //********************************** GEN AUX CONTACTOR
       case SerialCommand::enableGenAuxContactor:
-      digialWrite(GENAUXCONTACTOR, !digitalRead(GENAUXCONTACTOR));
+      digitalWrite(GENAUXCONTACTOR, !digitalRead(GENAUXCONTACTOR));
       GenAuxContact_Engaged = digitalRead(GENAUXCONTACTOR);
       break;
       //********************************** PERIPHERAL CONTACTOR

@@ -1,6 +1,8 @@
 #ifndef __ERRORCODES_HH__
 #define __ERRORCODES_HH__
 
+#include"Arduino.h"
+
 typedef enum
 {
   NoError = 0,
