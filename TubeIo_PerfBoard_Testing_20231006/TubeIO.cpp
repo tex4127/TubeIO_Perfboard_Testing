@@ -1,11 +1,27 @@
 #include "TubeIO.h"
 
+//Sets all values for the structure to false
 void setDataStruct(GeneratorStatus* _data)
 {
-  //for(uint i =0; i < 17; i++)
-  //{
-  //  memcpy(_data, 0, )
-  //}
+  bool* _g = &_data->HVEnabled;
+  bool dv = false;
+  for(uint i = 0; i < 17; i++)
+  {
+    memcpy(_g, &dv, sizeof(dv));
+    _g++;
+  }
+}
+
+//Sets all values for the structure to false
+void setDataStruct(GeneratorFaults* _data)
+{
+  bool* _f = &_data->FilamentSelect;
+  bool dv = false;
+  for(uint i = 0; i < 27; i++)
+  {
+    memcpy(_f, &dv, sizeof(dv));
+    _f++;
+  }
 }
 
 TubeIO::TubeIO()
@@ -33,6 +49,9 @@ void TubeIO::begin(ControlSerial_t ser)
   conv_mA_MSR.real = conv_mA_SP.real * 1.2;
   conv_Fil_SP.real = 6.0/4095.0;
   conv_Fil_MSR.real = conv_Fil_SP.real; //same value
+  //Set Default Values for both data structs
+  setDataStruct(&gen->_status);
+  setDataStruct(&gen->_faults);
   //Send a request to get scaling from the generator
   gen->sendDataToGenerator(SpellmanCommand::RequestScaling);
   delay(50); //wait for the gen to send the data
@@ -192,24 +211,24 @@ void TubeIO::parseGeneratorBuffer(char* data)
     //******************************************************************************************************************* GENERATOR FAULTS
     case SpellmanCommand::RequestFaults:
     //Lets parse some faults!
-    _f = &gen->_faults;
+    _f = &gen->_faults.FilamentSelect;
     for(uint i = 0; i < 27; i ++)
     {
       tok = strtok(NULL, ",");
       bool _bt = (bool)atoi(tok);
-      memcpy((bool*)_f, &_bt, sizeof(_bt));
-      _f += sizeof(bool*);
+      memcpy(_f, &_bt, sizeof(_bt));
+      _f++;
     }
     break;
     //******************************************************************************************************************* GENERATOR STATUS
     case SpellmanCommand::RequestStatus:
-    _g = &gen->_status;
+    _g = &gen->_status.HVEnabled;
     for(uint i = 0; i < 17; i++)
     {
       tok = strtok(NULL, ",");
       bool _bt = (bool)atoi(tok);
       memcpy((bool*)_g, &_bt, sizeof(_bt));
-      _g += sizeof(bool*);
+      _g++;
     }
     break;
     default:

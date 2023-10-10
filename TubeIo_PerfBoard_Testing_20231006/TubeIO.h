@@ -137,8 +137,8 @@ class TubeIO
   bool GenAuxContact_Engaged = false;
   bool PeripheralContact_Engaged = false;
   Generator* gen;
-  GeneratorFaults* _f;
-  GeneratorStatus* _g;
+  bool* _f;
+  bool* _g;
   bool genRequestSent = false;
   uint8_t cycleNumber = 0;
   void requestTubeAnalogRB();
