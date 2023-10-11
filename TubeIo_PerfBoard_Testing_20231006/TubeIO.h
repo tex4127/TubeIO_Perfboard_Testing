@@ -114,6 +114,7 @@ class TubeIO
   Value TubemA;
   Value TubekV;
   Value FilamentCur;
+  Value TubeVac;
   Value conv_mA_SP;
   Value conv_kV_SP;
   Value conv_Fil_SP;
@@ -123,6 +124,7 @@ class TubeIO
   void soundBuzzer();
   void readIFM();
   void readLineVoltage();
+  void readTubeVacuum();
   void engageK8Contactor();
   ErrorCodes_t setTubemA(float arg);
   ErrorCodes_t setTubekV(float arg);
@@ -134,6 +136,7 @@ class TubeIO
   TimerValue _timer_Buzzer;
   TimerValue _timer_VFD;
   ulong _startTime;
+  ulong _cycleTime = 50;
   bool K8Contact_Engaged = false;
   bool GenAuxContact_Engaged = false;
   bool PeripheralContact_Engaged = false;

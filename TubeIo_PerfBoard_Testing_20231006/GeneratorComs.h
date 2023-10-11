@@ -100,7 +100,7 @@ class Generator
   Generator();
   ErrorCodes_t begin(ComType _ct = ComType::RS232);
   ErrorCodes_t sendDataToGenerator(SpellmanCommand cmd, int arg1 = -1, int arg2 = -1, int arg3 = -1);
-  char* recieveDataFromGenerator();
+  void recieveDataFromGenerator(char* data, size_t len = MAXBUFFERLEN);
   GeneratorStatus _status;
   GeneratorFaults _faults;
   ErrorCodes_t addArgToArray(char* buf, size_t& pos, char* arg, size_t len);

@@ -65,13 +65,15 @@ void TubeIO::begin(ControlSerial_t ser)
   //Send a request to get scaling from the generator
   gen->sendDataToGenerator(SpellmanCommand::RequestScaling);
   delay(50); //wait for the gen to send the data
-  //char* genData = gen->recieveDataFromGenerator();
-  //if(genData[0] != '\0') parseGeneratorBuffer(genData);
+  char genData[MAXBUFFERLEN]; genData[0] = '\x23';
+  gen->recieveDataFromGenerator(genData);
+  if(genData[0] != '\x23') parseGeneratorBuffer(genData);
   TubeIO::resetValue(&coolantTemp);
   TubeIO::resetValue(&coolantFlow);
   TubeIO::resetValue(&TubemA);
   TubeIO::resetValue(&TubekV);
   TubeIO::resetValue(&FilamentCur);
+  TubeIO::resetValue(&TubeVac);
   //Setup Pin Modes for Digital Controls
   pinMode(VFDPOWERPIN, OUTPUT);
   digitalWrite(VFDPOWERPIN, LOW);
@@ -109,28 +111,31 @@ void TubeIO::run()
     switch (cycleNumber)
     {
       case 9:
-      //gen->sendDataToGenerator(SpellmanCommand::RequestStatus);
+      gen->sendDataToGenerator(SpellmanCommand::RequestStatus);
       break;
       case 19:
-      //gen->sendDataToGenerator(SpellmanCommand::RequestFaults);
+      gen->sendDataToGenerator(SpellmanCommand::RequestFaults);
       break;
       default:
-      //gen->sendDataToGenerator(SpellmanCommand::RequestAnalogReadBacks);
+      gen->sendDataToGenerator(SpellmanCommand::RequestAnalogReadBacks);
       break;
     }
   }
   //read all the other peripherals
   TubeIO::readIFM();
   TubeIO::readLineVoltage();
-  if(!TubeIO::_debug){TubeIO::sendData();}
-  //else{TubeIO::printData_f(_startTime);}
+  TubeIO::readTubeVacuum();
   do
   {
+    char gen_data[MAXBUFFERLEN]; gen_data[0] = '\x23';
+    gen->recieveDataFromGenerator(gen_data);
+    if(gen_data[0] != '\x23') TubeIO::parseGeneratorBuffer(gen_data);
     HandleSerialData();
-  } while(millis() - _startTime < 50);
+  } while(millis() - _startTime < _cycleTime);
   cycleNumber++;
   if(cycleNumber == 20){cycleNumber = 0; digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));}
-  Serial.println(); //used for debugging
+  if(!TubeIO::_debug){TubeIO::sendData();}
+  else{TubeIO::printData_f(_startTime);}
 }
 void TubeIO::readLineVoltage()
 {
@@ -151,6 +156,7 @@ ErrorCodes_t TubeIO::printData_f(ulong _st)
   serial->println("Filament Current:   " + String(FilamentCur.real,2));
   serial->println("Coolant Flow (GPM): " + String(coolantFlow.real,2));
   serial->println("Coolant Temp (C):   " + String(coolantTemp.real, 2));
+  serial->println("Tube Vacuum(V):     " + String(TubeVac.raw));
   serial->println("Cycle Time (ms):    " + String(millis() - _st));
   serial->println("********** GEN FAULTS **********");
   serial->println("PS FAULT:           " + String(gen->_status.PSFault));
@@ -397,6 +403,11 @@ void TubeIO::HandleSerialData()
       break;
     }
   }
+}
+
+void TubeIO::readTubeVacuum()
+{
+  TubeVac.raw = analogRead(SPCPIN);
 }
 
 /*

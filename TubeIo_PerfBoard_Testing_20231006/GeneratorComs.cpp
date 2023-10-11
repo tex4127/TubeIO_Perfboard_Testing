@@ -13,8 +13,8 @@ ErrorCodes_t Generator::begin(ComType _ct)
   if(_ct == ComType::RS232)
   {
     //Set the serial port to the appropriate tx/rx lines | Start the serial coms
-    Generator::gen_Serial = &Serial;
     Serial2.begin(HWS_BAUD);
+    Generator::gen_Serial = &Serial2;
     //gen_Serial->begin(HWS_BAUD);
   }
   return ErrorCodes_t::NoError;
@@ -36,7 +36,7 @@ ErrorCodes_t Generator::sendDataToGenerator(SpellmanCommand cmd, int arg1, int a
     addArgToArray(outBuffer, pos, cs);
   }
   outBuffer[pos++] = ETX_G;
-  Serial.write(outBuffer, pos);
+  gen_Serial->write(outBuffer, pos);
   return ErrorCodes_t::NoError;
 }
 
@@ -56,15 +56,13 @@ int Generator::calculateCheckSum(char* buf, size_t len)
 }
 
 //Gets the character array from the generator, the TubeIO will parse it though.
-char* Generator::recieveDataFromGenerator()
+void Generator::recieveDataFromGenerator(char* inData, size_t len)
 {
   char c = gen_Serial->read();
   if(c == STX_G)
   {
-    char inData[MAXBUFFERLEN];
-    gen_Serial->readBytesUntil(ETX_G, inData, MAXBUFFERLEN);
+    gen_Serial->readBytesUntil(ETX_G, inData, len);
   }
-  return NULL;
 }
 
 /*!
@@ -91,9 +89,9 @@ ErrorCodes_t Generator::addArgToArray(char* buf, size_t& pos, int arg)
   if(4 + pos > MAXBUFFERLEN) return ErrorCodes_t::bufferOverFlow;
   //No errors, proceed with concatnation
   int arg_c = arg;
-  if(arg > 1000) { buf[pos++] = (arg_c/1000) + 48; arg_c %= 1000;}
-  if(arg > 100)  { buf[pos++] = (arg_c/100) + 48;  arg_c %= 100;}
-  if(arg > 10)   { buf[pos++] = (arg_c/10) + 48;   arg_c %= 10;}
+  if(arg >= 1000) { buf[pos++] = (arg_c/1000) + 48; arg_c %= 1000;}
+  if(arg >= 100)  { buf[pos++] = (arg_c/100) + 48;  arg_c %= 100;}
+  if(arg >= 10)   { buf[pos++] = (arg_c/10) + 48;   arg_c %= 10;}
   buf[pos++] = 48 + arg_c;
   buf[pos++] = 0x2C;  //add the comma here because we are not refering to another overload which does
   return ErrorCodes_t::NoError;
