@@ -141,7 +141,7 @@ void TubeIO::run()
 }
 void TubeIO::readLineVoltage()
 {
-  
+  LineVoltage.raw = analogRead(LINEVOLTAGEPIN);
 }
 
 ErrorCodes_t TubeIO::sendData()
@@ -159,6 +159,7 @@ ErrorCodes_t TubeIO::printData_f(ulong _st)
   serial->println("Coolant Flow (GPM): " + String(coolantFlow.real,2));
   serial->println("Coolant Temp (C):   " + String(coolantTemp.real, 2));
   serial->println("Tube Vacuum(V):     " + String(TubeVac.raw));
+  serial->println("SPC HV Enabled:     " + String(digitalRead(HVENABLEDPIN)));
   serial->println("Cycle Time (ms):    " + String(millis() - _st));
   serial->println("********** GEN FAULTS **********");
   serial->println("PS FAULT:           " + String(gen->_status.PSFault));

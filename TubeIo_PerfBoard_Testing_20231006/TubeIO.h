@@ -17,7 +17,11 @@
 #endif
 
 #ifndef SPCHIPOTPIN
-#define SPCHIPOTPIN 40
+#define SPCHIPOTPIN 33 // was 40
+#endif
+
+#ifndef HVENABLEDPIN
+#define HVENABLEDPIN 39
 #endif
 
 #ifndef VFDPOWERPIN
@@ -54,6 +58,10 @@
 
 #ifndef BUZZERPIN
 #define BUZZERPIN 9
+#endif
+
+#ifndef LINEVOLTAGEPIN
+#define LINEVOLTAGEPIN 23
 #endif
 
 typedef enum
@@ -120,12 +128,14 @@ class TubeIO
   Value TubekV;
   Value FilamentCur;
   Value TubeVac;
+  bool SPC_HVE;
   Value conv_mA_SP;
   Value conv_kV_SP;
   Value conv_Fil_SP;
   Value conv_mA_MSR;
   Value conv_kV_MSR;
   Value conv_Fil_MSR;
+  Value LineVoltage;
   void soundBuzzer();
   void readIFM();
   void readLineVoltage();
