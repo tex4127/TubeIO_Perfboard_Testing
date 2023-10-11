@@ -16,6 +16,10 @@
 #define SPCPIN 41
 #endif
 
+#ifndef SPCHIPOTPIN
+#define SPCHIPOTPIN 40
+#endif
+
 #ifndef VFDPOWERPIN
 #define VFDPOWERPIN 2
 #endif
@@ -72,6 +76,7 @@ typedef enum
   decreaseVFD,
   enableBypass,
   enableHeater,
+  enableHiPot,
   //Peripheral Controls
   enableK8Contactor = 30,
   enableGenAuxContactor,

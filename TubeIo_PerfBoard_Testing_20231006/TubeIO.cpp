@@ -75,6 +75,8 @@ void TubeIO::begin(ControlSerial_t ser)
   TubeIO::resetValue(&FilamentCur);
   TubeIO::resetValue(&TubeVac);
   //Setup Pin Modes for Digital Controls
+  pinMode(SPCHIPOTPIN, OUTPUT);
+  digitalWrite(SPCHIPOTPIN, HIGH); // Short it once and it will highpot; 
   pinMode(VFDPOWERPIN, OUTPUT);
   digitalWrite(VFDPOWERPIN, LOW);
   pinMode(VFDFREQINCPIN, OUTPUT);
@@ -397,6 +399,10 @@ void TubeIO::HandleSerialData()
       //********************************** RESET GEN FAULTS
       case SerialCommand::resetGenFaults:
       gen->sendDataToGenerator(SpellmanCommand::ResetFaluts);
+      break;
+      //********************************** SET HI POT
+      case SerialCommand::enableHiPot:
+      digitalWrite(SPCHIPOTPIN, HIGH);
       break;
       default:
       //Maybe do something to signal a bad command? add an LED?
