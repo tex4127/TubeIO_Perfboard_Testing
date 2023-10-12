@@ -38,6 +38,7 @@ typedef struct
   bool OverTempAnnode;
   bool OverTempCathode;
   bool InverterAnnode;
+  bool InverterCathode;
   bool FilamentFeedback;
   bool AnnodeArc;
   bool CathodeArc;
