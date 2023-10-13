@@ -161,6 +161,7 @@ ErrorCodes_t TubeIO::printData_f(ulong _st)
   serial->println("Tube Vacuum(V):     " + String(TubeVac.raw));
   serial->println("SPC HV Enabled:     " + String(digitalRead(HVENABLEDPIN)));
   serial->println("Cycle Time (ms):    " + String(millis() - _st));
+  serial->println("Line Voltage:       " + String(LineVoltage.raw));
   serial->println("********** GEN FAULTS **********");
   serial->println("PS FAULT:           " + String(gen->_status.PSFault));
   serial->println("********** GEN STATUS **********");
