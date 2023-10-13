@@ -90,7 +90,11 @@ typedef enum
   enableGenAuxContactor,
   enablePeripheralContactor,
   resetGenFaults,
-  testBuzzer
+  testBuzzer,
+  //General id and debugging methods
+  requestID = 90,
+  setSerial,
+  debugData
 } SerialCommand;
 
 
