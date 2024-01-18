@@ -49,7 +49,8 @@
 
 typedef enum
 {
-  RS232 = 0,
+  USB = 0,
+  RS232,
   Ethernet
 } ComType;
 
